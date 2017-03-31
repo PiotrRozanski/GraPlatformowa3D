@@ -5,50 +5,112 @@ using UnityEngine;
 public class PlayerControl : MonoBehaviour {
 	public float speed;
 	public PlayerAnimationController animationControl;
+	public SplineInterpolator interpolator;
 
 	private Rigidbody body;
-	private bool moving;
-	// Use this for initialization
+	private bool moving; 
+
 	void Start () {
 		body = GetComponent<Rigidbody> ();
 		moving = false;
+		previousPosition = body.position; 
+		jumpTimeCounter = jumpTime;
 	}
-	
-	// Update is called once per frame
+	void Update()
+	{ 
+		var colls = Physics.OverlapSphere (groundCheck.position,checkRadius, whatIsGround);  
+		grounded = colls.Length > 0;
+		if(grounded)
+		{ 
+			jumpTimeCounter = jumpTime;
+		}
+		var collsTop = Physics.OverlapSphere (topCheck.position, checkRadius, whatIsGround);
+		if (collsTop.Length > 0){
+			jumpTimeCounter = 0;
+		}
+	}
 	void FixedUpdate () {
 		ControllPlayer ();
-	}     
+	}      
+	private Vector3 previousPosition, direction; 
+	private float previousHorizontal = 0.0f;
 	void ControllPlayer()
-	{
-		float moveHorizontal = -Input.GetAxisRaw ("Horizontal");
-		Vector3 movement = new Vector3 (moveHorizontal, 0.0f, 0.0f);
-		Vector3 lookAtMe = new Vector3 (0.0f, 0.0f, 1.0f);
-		transform.Translate (movement * speed * Time.deltaTime, Space.World);
+	{  
+		float moveHorizontal = Input.GetAxisRaw ("Horizontal");
 		if (moveHorizontal != 0) {
-			var newRot = Quaternion.LookRotation(movement);
-			transform.rotation = Quaternion.Lerp(transform.rotation, newRot, speed);  
-		} else {
-			var newRot = Quaternion.LookRotation(lookAtMe);
-			transform.rotation = Quaternion.Lerp(transform.rotation, newRot, 0.2f);  
+			interpolator.Move (Input.GetKey (KeyCode.LeftShift) ? 2 * speed * moveHorizontal : speed * moveHorizontal);  
+			previousHorizontal = moveHorizontal;  
+			if ((body.position-previousPosition).magnitude>0.1f) {
+				var newRot = Quaternion.LookRotation (body.position - previousPosition);
+				newRot.Set (0.0f, newRot.y, 0.0f, newRot.w);
+				//transform.rotation = Quaternion.Lerp (body.rotation, newRot,1); 
+				transform.rotation = newRot;
+				previousPosition = body.position; 
+			} 
+		} 
+		AnimateMovement (moveHorizontal); 
+		Attack ();  
+		Jump ();
+	}
+
+	void Attack ()
+	{
+		if (Input.GetButtonDown ("Fire1")) {
+			animationControl.Strike ();
+		}
+	}
+	public float jumpForce=2;
+	public float jumpTime;
+	private float jumpTimeCounter; 
+	public bool grounded;
+	public LayerMask whatIsGround;
+	public bool stoppedJumping; 
+	public Transform groundCheck;
+	public Transform topCheck;
+	public float checkRadius;
+	private void Jump(){
+		if(Input.GetKeyDown(KeyCode.Space) )
+		{
+			//and you are on the ground...
+			if(grounded)
+			{
+				//jump!
+				body.velocity = new Vector3 (body.velocity.x, jumpForce, body.velocity.z);
+				stoppedJumping = false;
+			}
 		}
 
-		if (!moving && moveHorizontal!=0  ) {
-			animationControl.Walk();
+		//if you keep holding down the mouse button...
+		if((Input.GetKey(KeyCode.Space)) && !stoppedJumping)
+		{
+			//and your counter hasn't reached zero...
+			if(jumpTimeCounter > 0)
+			{
+				//keep jumping!
+				body.velocity = new Vector3 (body.velocity.x, jumpForce, body.velocity.z);
+				jumpTimeCounter -= Time.deltaTime;
+			}
+		}
+
+
+		//if you stop holding down the mouse button...
+		if(Input.GetKeyUp(KeyCode.Space))
+		{
+			//stop jumping and set your counter to zero.  The timer will reset once we touch the ground again in the update function.
+			jumpTimeCounter = 0;
+			stoppedJumping = true;
+		}
+	}
+
+	void AnimateMovement (float moveHorizontal)
+	{
+		if (!moving && moveHorizontal != 0) {  
+				animationControl.Walk ();
 			moving = true;
 		}
 		if (moving && moveHorizontal == 0) {
 			animationControl.OtherIdle ();
 			moving = false;
-		}
-
-		if(Input.GetButtonDown ("Fire1"))
-		{ 
-			animationControl.Strike ();
-
-		}  
-		if (Input.GetKeyDown (KeyCode.Space)){
-
-			body.AddForce(new Vector3(0, 2, 0), ForceMode.Impulse);
 		}
 	}
 }
