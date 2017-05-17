@@ -4,8 +4,7 @@ using UnityEngine;
 
 public class PlayerControl : MonoBehaviour {
 	public float speed;
-	public PlayerAnimationController animationControl;
-	public SplineInterpolator interpolator;
+	public PlayerAnimationController animationControl; 
 
 	private Rigidbody body;
 	private bool moving; 
@@ -15,6 +14,7 @@ public class PlayerControl : MonoBehaviour {
 		moving = false;
 		previousPosition = body.position; 
 		jumpTimeCounter = jumpTime;
+		CharCtrl = this.GetComponent<CharacterController>();
 	}
 	void Update()
 	{ 
@@ -27,8 +27,10 @@ public class PlayerControl : MonoBehaviour {
 		var collsTop = Physics.OverlapSphere (topCheck.position, checkRadius, whatIsGround);
 		if (collsTop.Length > 0){
 			jumpTimeCounter = 0;
-		}
-	}
+		} 
+	}   
+	private CharacterController CharCtrl;
+  
 	void FixedUpdate () {
 		ControllPlayer ();
 	}      
@@ -38,16 +40,9 @@ public class PlayerControl : MonoBehaviour {
 	{  
 		float moveHorizontal = Input.GetAxisRaw ("Horizontal");
 		if (moveHorizontal != 0) {
-			interpolator.Move (Input.GetKey (KeyCode.LeftShift) ? 2 * speed * moveHorizontal : speed * moveHorizontal);  
-			previousHorizontal = moveHorizontal;  
-			if ((body.position-previousPosition).magnitude>0.1f) {
-				var newRot = Quaternion.LookRotation (body.position - previousPosition);
-				newRot.Set (0.0f, newRot.y, 0.0f, newRot.w);
-				//transform.rotation = Quaternion.Lerp (body.rotation, newRot,1); 
-				transform.rotation = newRot;
-				previousPosition = body.position; 
-			} 
+			body.MovePosition ( transform.position + transform.right * speed * moveHorizontal);
 		} 
+		transform.rotation = Quaternion.LookRotation (transform.right * moveHorizontal);
 		AnimateMovement (moveHorizontal); 
 		Attack ();  
 		Jump ();
@@ -59,6 +54,8 @@ public class PlayerControl : MonoBehaviour {
 			animationControl.Strike ();
 		}
 	}
+
+
 	public float jumpForce=2;
 	public float jumpTime;
 	private float jumpTimeCounter; 

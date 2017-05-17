@@ -48,9 +48,9 @@
   <ItemGroup>
      <Compile Include="Assets\Scripts\Player\FollowingCamera.cs" />
      <Compile Include="Assets\Scripts\Player\PlayerControl.cs" />
-     <Compile Include="Assets\Scripts\Player\SplineController\MathUtils.cs" />
-     <Compile Include="Assets\Scripts\Player\SplineController\SplineController.cs" />
-     <Compile Include="Assets\Scripts\Player\SplineController\SplineInterpolator.cs" />
+     <Compile Include="Assets\Scripts\SplineFollower\MathUtils.cs" />
+     <Compile Include="Assets\Scripts\SplineFollower\SplineController.cs" />
+     <Compile Include="Assets\Scripts\SplineFollower\SplineInterpolator.cs" />
      <Compile Include="Assets\kupione\Chibi Mummy\Scripts\PlayerAnimationController.cs" />
      <Compile Include="Assets\kupione\Chibi Mummy\Scripts\anims_controls.cs" />
      <None Include="Assets\kupione\Chibi Mummy\readme.txt" />

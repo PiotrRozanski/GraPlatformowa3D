@@ -23,6 +23,6 @@ public class FollowingCamera : MonoBehaviour {
 
 		//rotate us over time according to speed until we are in the required rotation
 		transform.rotation = Quaternion.Slerp(transform.rotation, _lookRotation, Time.deltaTime * rotationSpeed);
-		transform.position = target.position -offset; 
+	//	transform.position = target.position -offset; 
 	}
 }
